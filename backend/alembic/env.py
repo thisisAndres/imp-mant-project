@@ -8,8 +8,13 @@ from app.core.config import settings
 from app.db.base import Base
 import app.models  # noqa: F401 — registers all models with Base.metadata
 
+# Ensure the URL uses the asyncpg driver regardless of what the user put in .env
+_db_url = settings.DATABASE_URL
+if _db_url.startswith("postgresql://"):
+    _db_url = _db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+
 config = context.config
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+config.set_main_option("sqlalchemy.url", _db_url)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)

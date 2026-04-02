@@ -43,6 +43,15 @@ Thumbs.db
 # Docker
 *.log
 
+# Supabase local dev (keep migrations tracked, ignore local state)
+supabase/.branches/
+supabase/.temp/
+
+# Python venv
+backend/venv/
+
 # Reports (generated files)
 *.pdf
 *.xlsx
+
+.agents/
