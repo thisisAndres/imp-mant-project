@@ -2,13 +2,16 @@ import uuid
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+
+_VALID_SALES_STATUSES = {"pending", "completed", "cancelled"}
 
 
 class SalesOrderDetailCreate(BaseModel):
     product_id: int
-    quantity: int
-    unit_price: Decimal
+    quantity: int = Field(gt=0)
+    unit_price: Decimal = Field(ge=0)
 
 
 class SalesOrderDetailResponse(BaseModel):
@@ -24,12 +27,19 @@ class SalesOrderDetailResponse(BaseModel):
 
 class SalesOrderCreate(BaseModel):
     customer_id: int | None = None
-    notes: str | None = None
-    details: list[SalesOrderDetailCreate]
+    notes: str | None = Field(default=None, max_length=500)
+    details: list[SalesOrderDetailCreate] = Field(min_length=1)
 
 
 class SalesOrderStatusUpdate(BaseModel):
     status: str
+
+    @field_validator("status")
+    @classmethod
+    def status_allowlist(cls, v: str) -> str:
+        if v not in _VALID_SALES_STATUSES:
+            raise ValueError(f"status must be one of {_VALID_SALES_STATUSES}")
+        return v
 
 
 class SalesOrderResponse(BaseModel):

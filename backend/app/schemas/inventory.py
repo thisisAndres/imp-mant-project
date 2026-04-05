@@ -1,12 +1,12 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class InventoryUpdate(BaseModel):
-    quantity: int
-    min_stock: int | None = None
-    max_stock: int | None = None
+    quantity: int = Field(ge=0)
+    min_stock: int | None = Field(default=None, ge=0)
+    max_stock: int | None = Field(default=None, ge=0)
 
 
 class InventoryResponse(BaseModel):

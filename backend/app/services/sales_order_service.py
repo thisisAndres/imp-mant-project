@@ -46,12 +46,9 @@ async def update_status(db: AsyncSession, order_id: int, new_status: str) -> Sal
         for detail in order.details:
             inv = await inventory_repo.get_by_product(db, detail.product_id)
             if not inv or inv.quantity < detail.quantity:
-                product_name = f"product_id={detail.product_id}"
-                available = inv.quantity if inv else 0
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Insufficient stock for {product_name}: "
-                           f"requested {detail.quantity}, available {available}",
+                    detail="Insufficient stock for one or more items in this order",
                 )
         # Decrement inventory
         for detail in order.details:

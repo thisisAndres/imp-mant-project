@@ -1,22 +1,22 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class SupplierCreate(BaseModel):
-    company_name: str
-    contact_name: str | None = None
+    company_name: str = Field(min_length=1, max_length=200)
+    contact_name: str | None = Field(default=None, max_length=150)
     email: EmailStr | None = None
-    phone: str | None = None
-    address: str | None = None
+    phone: str | None = Field(default=None, max_length=30)
+    address: str | None = Field(default=None, max_length=500)
 
 
 class SupplierUpdate(BaseModel):
-    company_name: str | None = None
-    contact_name: str | None = None
+    company_name: str | None = Field(default=None, min_length=1, max_length=200)
+    contact_name: str | None = Field(default=None, max_length=150)
     email: EmailStr | None = None
-    phone: str | None = None
-    address: str | None = None
+    phone: str | None = Field(default=None, max_length=30)
+    address: str | None = Field(default=None, max_length=500)
     is_active: bool | None = None
 
 
