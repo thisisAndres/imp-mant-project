@@ -2,13 +2,16 @@ import uuid
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+
+_VALID_PURCHASE_STATUSES = {"pending", "received", "cancelled"}
 
 
 class PurchaseOrderDetailCreate(BaseModel):
     product_id: int
-    quantity: int
-    unit_cost: Decimal
+    quantity: int = Field(gt=0)
+    unit_cost: Decimal = Field(ge=0)
 
 
 class PurchaseOrderDetailResponse(BaseModel):
@@ -24,12 +27,19 @@ class PurchaseOrderDetailResponse(BaseModel):
 
 class PurchaseOrderCreate(BaseModel):
     supplier_id: int | None = None
-    notes: str | None = None
-    details: list[PurchaseOrderDetailCreate]
+    notes: str | None = Field(default=None, max_length=500)
+    details: list[PurchaseOrderDetailCreate] = Field(min_length=1)
 
 
 class PurchaseOrderStatusUpdate(BaseModel):
     status: str
+
+    @field_validator("status")
+    @classmethod
+    def status_allowlist(cls, v: str) -> str:
+        if v not in _VALID_PURCHASE_STATUSES:
+            raise ValueError(f"status must be one of {_VALID_PURCHASE_STATUSES}")
+        return v
 
 
 class PurchaseOrderResponse(BaseModel):

@@ -29,8 +29,29 @@ async def get_by_id(db: AsyncSession, product_id: int) -> Product | None:
     return result.scalar_one_or_none()
 
 
-async def create(db: AsyncSession, **kwargs) -> Product:
-    product = Product(**kwargs)
+async def create(
+    db: AsyncSession,
+    *,
+    sku: str,
+    name: str,
+    unit_price,
+    cost_price,
+    description: str | None = None,
+    category_id: int | None = None,
+    supplier_id: int | None = None,
+    unit: str = "unit",
+) -> Product:
+    """Create a new product with explicitly whitelisted fields only."""
+    product = Product(
+        sku=sku,
+        name=name,
+        description=description,
+        unit_price=unit_price,
+        cost_price=cost_price,
+        category_id=category_id,
+        supplier_id=supplier_id,
+        unit=unit,
+    )
     db.add(product)
     await db.commit()
     await db.refresh(product)

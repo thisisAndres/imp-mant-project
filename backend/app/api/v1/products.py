@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, require_role
@@ -14,8 +14,8 @@ admin_manager = require_role("admin", "manager")
 
 @router.get("/", response_model=list[ProductResponse])
 async def list_products(
-    skip: int = 0,
-    limit: int = 100,
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=50, ge=1, le=200),
     category_id: int | None = None,
     supplier_id: int | None = None,
     is_active: bool | None = None,
