@@ -1,7 +1,7 @@
 # Environment
 .env
 *.env
-!*.env.example
+.env.example
 
 # Python
 __pycache__/
@@ -55,3 +55,5 @@ backend/venv/
 *.xlsx
 
 .agents/
+.claude/
+skills-lock.json

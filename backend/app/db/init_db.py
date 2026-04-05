@@ -1,8 +1,7 @@
-import os
-
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.security import hash_password
 from app.models.role import Role
 from app.models.user import User
@@ -32,8 +31,8 @@ async def seed_initial_data(db: AsyncSession) -> None:
     await db.flush()  # make roles available for the FK below
 
     # --- Admin user ---
-    admin_email = os.environ.get("ADMIN_EMAIL")
-    admin_password = os.environ.get("ADMIN_PASSWORD")
+    admin_email = settings.ADMIN_EMAIL
+    admin_password = settings.ADMIN_PASSWORD
 
     if not admin_email or not admin_password:
         # No credentials supplied — skip creating the bootstrap admin account.
