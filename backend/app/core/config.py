@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     # Supabase (optional — used for storage, not required for core API)
     SUPABASE_URL: str | None = None
     SUPABASE_KEY: str | None = None
+    # Bootstrap admin (optional — seed skipped if absent)
+    ADMIN_EMAIL: str | None = None
+    ADMIN_PASSWORD: str | None = None
 
     @field_validator("SECRET_KEY")
     @classmethod
@@ -35,6 +38,7 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env"
+        extra = "ignore"
 
 
 settings = Settings()
