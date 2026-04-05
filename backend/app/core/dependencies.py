@@ -3,7 +3,7 @@ from typing import Callable
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jose import JWTError
+from jwt.exceptions import InvalidTokenError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import decode_token
@@ -25,10 +25,13 @@ async def get_current_user(
     )
     try:
         payload = decode_token(credentials.credentials)
+        # Reject tokens that are not access tokens (e.g. refresh tokens submitted here)
+        if payload.get("type") != "access":
+            raise credentials_exception
         user_id: str = payload.get("sub")
         if user_id is None:
             raise credentials_exception
-    except JWTError:
+    except InvalidTokenError:
         raise credentials_exception
 
     user = await user_repo.get_by_id(db, uuid.UUID(user_id))

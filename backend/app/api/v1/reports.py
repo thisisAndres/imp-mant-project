@@ -1,9 +1,9 @@
 from datetime import datetime
+from io import BytesIO
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status as http_status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from io import BytesIO
 
 from app.core.dependencies import require_role
 from app.db.session import get_db
@@ -16,6 +16,9 @@ router = APIRouter()
 
 admin_manager = require_role("admin", "manager")
 
+_VALID_SALES_STATUSES = {"pending", "completed", "cancelled"}
+_VALID_STOCK_STATUSES = {"normal", "low", "critical"}
+
 
 @router.get("/sales")
 async def sales_report(
@@ -27,6 +30,11 @@ async def sales_report(
     db: AsyncSession = Depends(get_db),
     _current_user: User = Depends(admin_manager),
 ):
+    if status is not None and status not in _VALID_SALES_STATUSES:
+        raise HTTPException(
+            status_code=http_status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"status must be one of {_VALID_SALES_STATUSES}",
+        )
     data = await report_repo.sales_report_data(
         db, start_date=start_date, end_date=end_date,
         status=status, customer_id=customer_id,
@@ -62,6 +70,11 @@ async def inventory_report(
     db: AsyncSession = Depends(get_db),
     _current_user: User = Depends(admin_manager),
 ):
+    if status is not None and status not in _VALID_STOCK_STATUSES:
+        raise HTTPException(
+            status_code=http_status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"status must be one of {_VALID_STOCK_STATUSES}",
+        )
     data = await report_repo.inventory_report_data(
         db, category_id=category_id, stock_status=status, supplier_id=supplier_id,
     )
