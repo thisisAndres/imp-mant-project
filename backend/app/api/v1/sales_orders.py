@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, require_role
@@ -19,11 +19,13 @@ router = APIRouter()
 
 admin_manager = require_role("admin", "manager")
 
+_VALID_STATUSES = {"pending", "completed", "cancelled"}
+
 
 @router.get("/", response_model=list[SalesOrderResponse])
 async def list_sales_orders(
-    skip: int = 0,
-    limit: int = 100,
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=50, ge=1, le=200),
     status_filter: str | None = None,
     customer_id: int | None = None,
     start_date: datetime | None = None,
@@ -31,6 +33,11 @@ async def list_sales_orders(
     db: AsyncSession = Depends(get_db),
     _current_user: User = Depends(get_current_user),
 ):
+    if status_filter is not None and status_filter not in _VALID_STATUSES:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"status_filter must be one of {_VALID_STATUSES}",
+        )
     return await sales_order_repo.get_all(
         db, skip=skip, limit=limit, status=status_filter,
         customer_id=customer_id, start_date=start_date, end_date=end_date,
@@ -68,7 +75,7 @@ async def update_sales_order_status(
     order_id: int,
     body: SalesOrderStatusUpdate,
     db: AsyncSession = Depends(get_db),
-    _current_user: User = Depends(get_current_user),
+    _current_user: User = Depends(admin_manager),
 ):
     return await sales_order_service.update_status(db, order_id, body.status)
 

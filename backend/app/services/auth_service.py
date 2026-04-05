@@ -1,6 +1,8 @@
-from datetime import datetime, timedelta
+import uuid
+from datetime import datetime, timedelta, timezone
 
-from jose import JWTError, jwt
+import jwt
+from jwt.exceptions import InvalidTokenError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -13,7 +15,7 @@ REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 def create_refresh_token(data: dict) -> str:
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    expire = datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
     to_encode.update({"exp": expire, "type": "refresh"})
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
@@ -40,10 +42,11 @@ async def refresh_tokens(db: AsyncSession, refresh_token: str) -> dict | None:
                              algorithms=[settings.ALGORITHM])
         if payload.get("type") != "refresh":
             return None
-        user_id = payload.get("sub")
-        if not user_id:
+        user_id_str = payload.get("sub")
+        if not user_id_str:
             return None
-    except JWTError:
+        user_id = uuid.UUID(user_id_str)
+    except (InvalidTokenError, ValueError):
         return None
 
     user = await user_repo.get_by_id(db, user_id)

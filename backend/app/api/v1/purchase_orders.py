@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import require_role
@@ -17,16 +17,23 @@ router = APIRouter()
 
 admin_manager = require_role("admin", "manager")
 
+_VALID_STATUSES = {"pending", "received", "cancelled"}
+
 
 @router.get("/", response_model=list[PurchaseOrderResponse])
 async def list_purchase_orders(
-    skip: int = 0,
-    limit: int = 100,
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=50, ge=1, le=200),
     status_filter: str | None = None,
     supplier_id: int | None = None,
     db: AsyncSession = Depends(get_db),
     _current_user: User = Depends(admin_manager),
 ):
+    if status_filter is not None and status_filter not in _VALID_STATUSES:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"status_filter must be one of {_VALID_STATUSES}",
+        )
     return await purchase_order_repo.get_all(
         db, skip=skip, limit=limit, status=status_filter, supplier_id=supplier_id
     )

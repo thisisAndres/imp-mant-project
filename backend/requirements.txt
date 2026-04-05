@@ -3,10 +3,13 @@ uvicorn[standard]==0.29.0
 sqlalchemy[asyncio]==2.0.29
 asyncpg==0.29.0
 alembic==1.13.1
-pydantic==2.7.0
+pydantic==2.7.1
 pydantic-settings==2.2.1
-python-jose[cryptography]==3.3.0
+# Migrated from python-jose (CVE-2024-33664, CVE-2024-33663) to PyJWT.
+PyJWT[crypto]==2.8.0
+# passlib is unmaintained; bcrypt 4.x is still secure. Pin bcrypt explicitly.
 passlib[bcrypt]==1.7.4
+bcrypt==4.1.3
 python-multipart==0.0.9
 reportlab==4.1.0
 openpyxl==3.1.2
