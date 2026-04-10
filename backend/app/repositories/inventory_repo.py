@@ -1,6 +1,4 @@
-from datetime import datetime, timezone
-
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -30,7 +28,7 @@ async def update_quantity(db: AsyncSession, product_id: int, delta: int) -> Inve
         .where(Inventory.product_id == product_id)
         .values(
             quantity=Inventory.quantity + delta,
-            last_updated_at=datetime.now(timezone.utc),
+            last_updated_at=func.now(),
         )
         .execution_options(synchronize_session=False)
     )
@@ -48,19 +46,14 @@ async def set_inventory(
     inv = await get_by_product(db, product_id)
     if not inv:
         return None
-    values: dict = {"quantity": quantity, "last_updated_at": datetime.now(timezone.utc)}
+    inv.quantity = quantity
     if min_stock is not None:
-        values["min_stock"] = min_stock
+        inv.min_stock = min_stock
     if max_stock is not None:
-        values["max_stock"] = max_stock
-    await db.execute(
-        update(Inventory)
-        .where(Inventory.product_id == product_id)
-        .values(**values)
-        .execution_options(synchronize_session=False)
-    )
+        inv.max_stock = max_stock
     await db.commit()
-    return await get_by_product(db, product_id)
+    await db.refresh(inv)
+    return inv
 
 
 async def create_inventory(db: AsyncSession, product_id: int, quantity: int = 0,

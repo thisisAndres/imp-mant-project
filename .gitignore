@@ -1,6 +1,7 @@
 # Environment
 .env
 *.env
+.env.*
 .env.example
 
 # Python
@@ -53,6 +54,7 @@ backend/venv/
 # Reports (generated files)
 *.pdf
 *.xlsx
+backend/test_output.txt
 
 .agents/
 .claude/

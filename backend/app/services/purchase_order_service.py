@@ -44,7 +44,7 @@ async def update_status(db: AsyncSession, order_id: int, new_status: str) -> Pur
 
     received_at = None
     if new_status == "received":
-        received_at = datetime.now(timezone.utc)
+        received_at = datetime.now(timezone.utc).replace(tzinfo=None)
         # Increment inventory for each detail line
         for detail in order.details:
             await inventory_repo.update_quantity(db, detail.product_id, detail.quantity)
