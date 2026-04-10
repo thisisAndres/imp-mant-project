@@ -12,6 +12,21 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: sgiv_test
+          POSTGRES_USER: dev
+          POSTGRES_PASSWORD: dev123
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
 
@@ -29,7 +44,7 @@ jobs:
             --cov=app --cov-report=term-missing \
             --cov-fail-under=70
         env:
-          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+          DATABASE_URL: postgresql+asyncpg://dev:dev123@localhost:5432/sgiv_test
           SECRET_KEY: test_secret_key_for_ci_at_least_32_chars!!
           ALGORITHM: HS256
           ACCESS_TOKEN_EXPIRE_MINUTES: 30
