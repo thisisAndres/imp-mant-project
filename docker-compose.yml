@@ -5,7 +5,9 @@ services:
     build: ./backend
     ports:
       - "8000:8000"
-    env_file: ./backend/.env
+    env_file: ./backend/.env.test
+    environment:
+      DATABASE_URL: postgresql+asyncpg://dev:dev123@postgres:5432/sgiv_db
     depends_on:
       - postgres
     volumes:

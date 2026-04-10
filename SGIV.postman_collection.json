@@ -1,0 +1,853 @@
+{
+	"info": {
+		"_postman_id": "sgiv-api-collection",
+		"name": "SGIV API",
+		"description": "Sistema de Gestión de Inventario y Ventas",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8000",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refresh_token",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{access_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"item": [
+		{
+			"name": "Health",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"auth": {"type": "noauth"},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": ["{{base_url}}"],
+							"path": ["health"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"var res = pm.response.json();",
+									"if (res.access_token) {",
+									"    pm.collectionVariables.set('access_token', res.access_token);",
+									"    pm.collectionVariables.set('refresh_token', res.refresh_token);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {"type": "noauth"},
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"var res = pm.response.json();",
+									"if (res.access_token) {",
+									"    pm.collectionVariables.set('access_token', res.access_token);",
+									"    pm.collectionVariables.set('refresh_token', res.refresh_token);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {"type": "noauth"},
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"refresh_token\": \"{{refresh_token}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/refresh",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "auth", "refresh"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "List Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/?skip=0&limit=50",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "users", ""],
+							"query": [
+								{"key": "skip", "value": "0"},
+								{"key": "limit", "value": "50"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/:user_id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "users", ":user_id"],
+							"variable": [{"key": "user_id", "value": ""}]
+						}
+					}
+				},
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"employee@sgiv.com\",\n    \"password\": \"Employee1234\",\n    \"full_name\": \"John Employee\",\n    \"role_id\": 3\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "users", ""]
+						}
+					}
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"full_name\": \"John Updated\",\n    \"is_active\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/:user_id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "users", ":user_id"],
+							"variable": [{"key": "user_id", "value": ""}]
+						}
+					}
+				},
+				{
+					"name": "Deactivate User",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/:user_id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "users", ":user_id"],
+							"variable": [{"key": "user_id", "value": ""}]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Categories",
+			"item": [
+				{
+					"name": "List Categories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/categories/?skip=0&limit=50",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "categories", ""],
+							"query": [
+								{"key": "skip", "value": "0"},
+								{"key": "limit", "value": "50"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Category",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/categories/:category_id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "categories", ":category_id"],
+							"variable": [{"key": "category_id", "value": "1"}]
+						}
+					}
+				},
+				{
+					"name": "Create Category",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Electronics\",\n    \"description\": \"Electronic devices and accessories\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/categories/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "categories", ""]
+						}
+					}
+				},
+				{
+					"name": "Update Category",
+					"request": {
+						"method": "PUT",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Electronics\",\n    \"description\": \"Updated description\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/categories/:category_id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "categories", ":category_id"],
+							"variable": [{"key": "category_id", "value": "1"}]
+						}
+					}
+				},
+				{
+					"name": "Delete Category",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/categories/:category_id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "categories", ":category_id"],
+							"variable": [{"key": "category_id", "value": "1"}]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Suppliers",
+			"item": [
+				{
+					"name": "List Suppliers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/suppliers/?skip=0&limit=50",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "suppliers", ""],
+							"query": [
+								{"key": "skip", "value": "0"},
+								{"key": "limit", "value": "50"},
+								{"key": "is_active", "value": "true", "disabled": true}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Supplier",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/suppliers/:supplier_id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "suppliers", ":supplier_id"],
+							"variable": [{"key": "supplier_id", "value": "1"}]
+						}
+					}
+				},
+				{
+					"name": "Create Supplier",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"company_name\": \"TechCorp S.A.\",\n    \"contact_name\": \"Ana García\",\n    \"email\": \"ana@techcorp.com\",\n    \"phone\": \"+1-555-0100\",\n    \"address\": \"123 Main St, New York\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/suppliers/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "suppliers", ""]
+						}
+					}
+				},
+				{
+					"name": "Update Supplier",
+					"request": {
+						"method": "PUT",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"contact_name\": \"Carlos López\",\n    \"phone\": \"+1-555-0199\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/suppliers/:supplier_id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "suppliers", ":supplier_id"],
+							"variable": [{"key": "supplier_id", "value": "1"}]
+						}
+					}
+				},
+				{
+					"name": "Deactivate Supplier",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/suppliers/:supplier_id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "suppliers", ":supplier_id"],
+							"variable": [{"key": "supplier_id", "value": "1"}]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Customers",
+			"item": [
+				{
+					"name": "List Customers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customers/?skip=0&limit=50",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customers", ""],
+							"query": [
+								{"key": "skip", "value": "0"},
+								{"key": "limit", "value": "50"},
+								{"key": "is_active", "value": "true", "disabled": true}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Customer",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customers/:customer_id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customers", ":customer_id"],
+							"variable": [{"key": "customer_id", "value": "1"}]
+						}
+					}
+				},
+				{
+					"name": "Create Customer",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"full_name\": \"María Rodríguez\",\n    \"email\": \"maria@example.com\",\n    \"phone\": \"+1-555-0200\",\n    \"address\": \"456 Oak Ave\",\n    \"id_number\": \"1234567890\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/customers/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customers", ""]
+						}
+					}
+				},
+				{
+					"name": "Update Customer",
+					"request": {
+						"method": "PUT",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"phone\": \"+1-555-0299\",\n    \"address\": \"789 Pine St\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/customers/:customer_id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customers", ":customer_id"],
+							"variable": [{"key": "customer_id", "value": "1"}]
+						}
+					}
+				},
+				{
+					"name": "Deactivate Customer",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/customers/:customer_id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "customers", ":customer_id"],
+							"variable": [{"key": "customer_id", "value": "1"}]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Products",
+			"item": [
+				{
+					"name": "List Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/products/?skip=0&limit=50",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "products", ""],
+							"query": [
+								{"key": "skip", "value": "0"},
+								{"key": "limit", "value": "50"},
+								{"key": "category_id", "value": "1", "disabled": true},
+								{"key": "supplier_id", "value": "1", "disabled": true},
+								{"key": "is_active", "value": "true", "disabled": true}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Product",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/products/:product_id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "products", ":product_id"],
+							"variable": [{"key": "product_id", "value": "1"}]
+						}
+					}
+				},
+				{
+					"name": "Create Product",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sku\": \"PROD-001\",\n    \"name\": \"Laptop Pro 15\",\n    \"description\": \"High performance laptop\",\n    \"unit_price\": 1299.99,\n    \"cost_price\": 950.00,\n    \"category_id\": 1,\n    \"supplier_id\": 1,\n    \"unit\": \"unit\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/products/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "products", ""]
+						}
+					}
+				},
+				{
+					"name": "Update Product",
+					"request": {
+						"method": "PUT",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"unit_price\": 1199.99,\n    \"description\": \"Updated description\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/products/:product_id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "products", ":product_id"],
+							"variable": [{"key": "product_id", "value": "1"}]
+						}
+					}
+				},
+				{
+					"name": "Deactivate Product",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/products/:product_id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "products", ":product_id"],
+							"variable": [{"key": "product_id", "value": "1"}]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Inventory",
+			"item": [
+				{
+					"name": "List Inventory",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/inventory/?skip=0&limit=50",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "inventory", ""],
+							"query": [
+								{"key": "skip", "value": "0"},
+								{"key": "limit", "value": "50"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Inventory by Product",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/inventory/:product_id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "inventory", ":product_id"],
+							"variable": [{"key": "product_id", "value": "1"}]
+						}
+					}
+				},
+				{
+					"name": "Update Inventory",
+					"request": {
+						"method": "PUT",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"quantity\": 100,\n    \"min_stock\": 10,\n    \"max_stock\": 500\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/inventory/:product_id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "inventory", ":product_id"],
+							"variable": [{"key": "product_id", "value": "1"}]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Purchase Orders",
+			"item": [
+				{
+					"name": "List Purchase Orders",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/purchase-orders/?skip=0&limit=50",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "purchase-orders", ""],
+							"query": [
+								{"key": "skip", "value": "0"},
+								{"key": "limit", "value": "50"},
+								{"key": "status_filter", "value": "pending", "disabled": true},
+								{"key": "supplier_id", "value": "1", "disabled": true}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Purchase Order",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/purchase-orders/:order_id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "purchase-orders", ":order_id"],
+							"variable": [{"key": "order_id", "value": "1"}]
+						}
+					}
+				},
+				{
+					"name": "Create Purchase Order",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"supplier_id\": 1,\n    \"notes\": \"Urgent restock\",\n    \"details\": [\n        {\n            \"product_id\": 1,\n            \"quantity\": 10,\n            \"unit_cost\": 950.00\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/purchase-orders/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "purchase-orders", ""]
+						}
+					}
+				},
+				{
+					"name": "Update Status",
+					"request": {
+						"method": "PUT",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"received\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/purchase-orders/:order_id/status",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "purchase-orders", ":order_id", "status"],
+							"variable": [{"key": "order_id", "value": "1"}]
+						}
+					}
+				},
+				{
+					"name": "Cancel Purchase Order",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/purchase-orders/:order_id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "purchase-orders", ":order_id"],
+							"variable": [{"key": "order_id", "value": "1"}]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Sales Orders",
+			"item": [
+				{
+					"name": "List Sales Orders",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/sales-orders/?skip=0&limit=50",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "sales-orders", ""],
+							"query": [
+								{"key": "skip", "value": "0"},
+								{"key": "limit", "value": "50"},
+								{"key": "status_filter", "value": "pending", "disabled": true},
+								{"key": "customer_id", "value": "1", "disabled": true}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Sales Order",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/sales-orders/:order_id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "sales-orders", ":order_id"],
+							"variable": [{"key": "order_id", "value": "1"}]
+						}
+					}
+				},
+				{
+					"name": "Create Sales Order",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customer_id\": 1,\n    \"notes\": \"First order\",\n    \"details\": [\n        {\n            \"product_id\": 1,\n            \"quantity\": 2,\n            \"unit_price\": 1299.99\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/sales-orders/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "sales-orders", ""]
+						}
+					}
+				},
+				{
+					"name": "Update Status",
+					"request": {
+						"method": "PUT",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"completed\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/sales-orders/:order_id/status",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "sales-orders", ":order_id", "status"],
+							"variable": [{"key": "order_id", "value": "1"}]
+						}
+					}
+				},
+				{
+					"name": "Cancel Sales Order",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/sales-orders/:order_id",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "sales-orders", ":order_id"],
+							"variable": [{"key": "order_id", "value": "1"}]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Payments",
+			"item": [
+				{
+					"name": "List Payments",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/payments/?skip=0&limit=50",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "payments", ""],
+							"query": [
+								{"key": "skip", "value": "0"},
+								{"key": "limit", "value": "50"},
+								{"key": "sales_order_id", "value": "1", "disabled": true}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Payment",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sales_order_id\": 1,\n    \"amount\": 2599.98,\n    \"method\": \"card\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/payments/",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "payments", ""]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Reports",
+			"item": [
+				{
+					"name": "Sales Report — PDF",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/reports/sales?format=pdf",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "reports", "sales"],
+							"query": [
+								{"key": "format", "value": "pdf"},
+								{"key": "start_date", "value": "2026-01-01T00:00:00", "disabled": true},
+								{"key": "end_date", "value": "2026-12-31T23:59:59", "disabled": true},
+								{"key": "status", "value": "completed", "disabled": true},
+								{"key": "customer_id", "value": "1", "disabled": true}
+							]
+						}
+					}
+				},
+				{
+					"name": "Sales Report — Excel",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/reports/sales?format=excel",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "reports", "sales"],
+							"query": [
+								{"key": "format", "value": "excel"},
+								{"key": "start_date", "value": "2026-01-01T00:00:00", "disabled": true},
+								{"key": "end_date", "value": "2026-12-31T23:59:59", "disabled": true}
+							]
+						}
+					}
+				},
+				{
+					"name": "Inventory Report — PDF",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/reports/inventory?format=pdf",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "reports", "inventory"],
+							"query": [
+								{"key": "format", "value": "pdf"},
+								{"key": "category_id", "value": "1", "disabled": true},
+								{"key": "supplier_id", "value": "1", "disabled": true},
+								{"key": "status", "value": "low", "disabled": true}
+							]
+						}
+					}
+				},
+				{
+					"name": "Inventory Report — Excel",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/reports/inventory?format=excel",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "reports", "inventory"],
+							"query": [
+								{"key": "format", "value": "excel"},
+								{"key": "status", "value": "critical", "disabled": true}
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}

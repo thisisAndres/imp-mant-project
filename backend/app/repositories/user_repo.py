@@ -50,8 +50,7 @@ async def update_user(db: AsyncSession, user_id: uuid.UUID, data: dict) -> User 
         if value is not None:
             setattr(user, key, value)
     await db.commit()
-    await db.refresh(user, attribute_names=["role"])
-    return user
+    return await get_by_id(db, user_id)
 
 
 async def deactivate(db: AsyncSession, user_id: uuid.UUID) -> User | None:
