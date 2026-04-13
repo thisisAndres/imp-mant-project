@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { loginRequest } from "../api/auth";
 
 function Login() {
@@ -8,6 +9,7 @@ function Login() {
   });
 
   const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setForm({
@@ -32,7 +34,7 @@ function Login() {
       localStorage.setItem("access_token", data.access_token);
       localStorage.setItem("refresh_token", data.refresh_token);
 
-      setMessage("Login exitoso.");
+      navigate("/dashboard");
     } catch (error) {
   console.error("Error completo en login:", error);
   console.log("error.response:", error.response);

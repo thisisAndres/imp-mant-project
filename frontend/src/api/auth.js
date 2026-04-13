@@ -1,17 +1,6 @@
-import axios from "axios";
-
-const API_URL = import.meta.env.VITE_API_URL;
+import axiosInstance from "./axiosInstance";
 
 export const loginRequest = async (credentials) => {
-  const response = await axios.post(
-    `${API_URL}/api/v1/auth/login`,
-    credentials,
-    {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
-
+  const response = await axiosInstance.post("/auth/login", credentials);
   return response.data;
 };

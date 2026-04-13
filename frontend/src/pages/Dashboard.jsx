@@ -1,6 +1,10 @@
+import Navbar from "../components/Navbar";
+
 function Dashboard() {
   return (
     <div style={styles.container}>
+      <Navbar />
+      <div style={styles.content}>
       <h1 style={styles.title}>Dashboard</h1>
       <p style={styles.subtitle}>Bienvenido al sistema SGIV</p>
 
@@ -15,6 +19,7 @@ function Dashboard() {
           <p>Desde aquí podrás descargar reportes de ventas e inventario.</p>
         </div>
       </div>
+      </div>
     </div>
   );
 }
@@ -22,8 +27,10 @@ function Dashboard() {
 const styles = {
   container: {
     minHeight: "100vh",
-    padding: "2rem",
     backgroundColor: "#f3f4f6",
+  },
+  content: {
+    padding: "2rem",
   },
   title: {
     fontSize: "2rem",
