@@ -5,7 +5,7 @@ on:
     branches: [main, develop]
     paths: ["frontend/**"]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
     paths: ["frontend/**"]
 
 jobs:
@@ -24,8 +24,13 @@ jobs:
       - name: Install dependencies
         run: cd frontend && npm ci
 
+      - name: Test
+        run: cd frontend && npm test
+        env:
+          VITE_API_URL: https://placeholder.example.com
+
       - name: Build
         run: cd frontend && npm run build
         env:
-          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
           VITE_APP_NAME: SGIV
