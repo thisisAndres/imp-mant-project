@@ -58,8 +58,10 @@
 sgiv/
 ├── .github/
 │   └── workflows/
-│       ├── frontend.yml          # CI/CD para React → Vercel
-│       └── backend.yml           # CI/CD para FastAPI → Render
+│       ├── CI_backend.yml        # CI: test + coverage gate (70%) → develop & main
+│       ├── CI_frontend.yml       # CI: build check → develop & main
+│       ├── CD_backend.yml        # CD: deploy to Render → main only
+│       └── CD_frontend.yml       # CD: deploy to Vercel → main only
 ├── frontend/
 │   ├── public/
 │   ├── src/
@@ -119,17 +121,16 @@ sgiv/
 │   │   │   ├── pdf_generator.py  # ReportLab
 │   │   │   └── excel_generator.py # openpyxl
 │   │   └── main.py
-│   ├── alembic/                  # Migraciones de DB
-│   │   ├── versions/
-│   │   └── env.py
 │   ├── tests/
+│   │   ├── conftest.py           # Fixtures compartidos, NullPool engine, limpieza por test
 │   │   ├── test_auth.py
 │   │   ├── test_products.py
 │   │   └── test_reports.py
 │   ├── .env.example
+│   ├── .env.test                 # Credenciales locales para tests (gitignored)
 │   ├── Dockerfile
-│   ├── requirements.txt
-│   └── alembic.ini
+│   ├── pytest.ini
+│   └── requirements.txt
 ├── docker-compose.yml            # Para desarrollo local (frontend + backend + postgres local)
 ├── .gitignore
 └── README.md
@@ -348,6 +349,9 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY ./app ./app
+COPY ./tests ./tests
+COPY pytest.ini .
+COPY .env.test .
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
@@ -384,75 +388,31 @@ volumes:
 
 ## 🚀 CI/CD — GitHub Actions
 
-### `.github/workflows/backend.yml`
-```yaml
-name: Backend CI/CD
+Los workflows están divididos en CI (test) y CD (deploy) por separado.
 
-on:
-  push:
-    branches: [main]
-    paths: ["backend/**"]
-  pull_request:
-    branches: [main]
-    paths: ["backend/**"]
+### `CI_backend.yml` — corre en push/PR a `develop` y `main`
+- Levanta un contenedor Postgres 15 efímero en el runner (no requiere secrets de DB)
+- Instala dependencias, corre pytest con cobertura mínima del 70%
+- Credenciales del contenedor: `dev:dev123@localhost:5432/sgiv_test`
 
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with: { python-version: "3.11" }
-      - run: pip install -r backend/requirements.txt
-      - run: pytest backend/tests/ -v
-        env:
-          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
-          SECRET_KEY: test_secret_key
+### `CI_frontend.yml` — corre en push/PR a `develop` y `main`
+- Instala dependencias y valida que el build de Vite compile sin errores
 
-  deploy:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - name: Deploy to Render
-        run: |
-          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
-```
+### `CD_backend.yml` — corre solo en push a `main`
+- Dispara el deploy hook de Render via `curl`
 
-### `.github/workflows/frontend.yml`
-```yaml
-name: Frontend CI/CD
-
-on:
-  push:
-    branches: [main]
-    paths: ["frontend/**"]
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: "20" }
-      - run: cd frontend && npm ci && npm run build
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          working-directory: ./frontend
-```
+### `CD_frontend.yml` — corre solo en push a `main`
+- Deploy a Vercel via `amondnet/vercel-action@v25`
 
 ### Secrets de GitHub Actions requeridos:
 | Secret | Descripción |
 |---|---|
-| `TEST_DATABASE_URL` | URL de la DB de testing en Supabase |
 | `RENDER_DEPLOY_HOOK_URL` | Webhook de deploy de Render |
 | `VERCEL_TOKEN` | Token de API de Vercel |
 | `VERCEL_ORG_ID` | ID de la organización en Vercel |
 | `VERCEL_PROJECT_ID` | ID del proyecto en Vercel |
+
+> `TEST_DATABASE_URL` ya **no es necesario** — el CI usa un contenedor Postgres local.
 
 ---
 
@@ -466,7 +426,7 @@ jobs:
 | Frontend HTTP | Axios | 1 | API calls |
 | Backend | FastAPI | 0.111 | REST API |
 | Backend ORM | SQLAlchemy | 2 (async) | DB queries |
-| Backend Migrations | Alembic | 1.13 | DB versioning |
+| Backend Migrations | — | — | Tablas creadas manualmente en Supabase (Alembic removido) |
 | Backend Reports PDF | ReportLab | 4 | Generación PDF |
 | Backend Reports Excel | openpyxl | 3.1 | Generación Excel |
 | Backend Auth | python-jose + passlib | latest | JWT + hashing |
@@ -524,27 +484,44 @@ fix/*     ──┘
 - **Rollback:** revertir el merge en GitHub re-dispara el deploy de la versión anterior
 
 ### Migraciones de DB
-- Siempre usar Alembic: `alembic revision --autogenerate -m "descripcion"`
-- Las migraciones corren automáticamente al iniciar el servidor en staging
-- En producción, las migraciones se ejecutan manualmente antes del deploy
+- Alembic fue removido. Las tablas están creadas manualmente en Supabase.
+- Cambios al schema se aplican directamente en el editor SQL de Supabase.
 
 ---
 
 ## 🧪 Testing
 
+### Correr tests localmente (recomendado — via Docker)
 ```bash
-# Backend
-cd backend
-pytest tests/ -v --cov=app --cov-report=term-missing
+# Levantar solo la DB
+docker-compose up -d postgres
 
-# Frontend
-cd frontend
-npm run test        # Vitest unit tests
-npm run test:e2e    # Playwright E2E
+# Correr tests dentro del contenedor del backend
+docker-compose run --rm backend pytest tests/ -v
+
+# Reconstruir imagen si cambiaron archivos fuera de backend/app/
+docker-compose build backend
 ```
 
+### Correr tests sin Docker (requiere Postgres local)
+```bash
+cd backend
+pytest tests/ -v --cov=app --cov-report=term-missing
+```
+Requiere `backend/.env.test` con `DATABASE_URL` apuntando a un Postgres local.
+
+### Arquitectura de tests
+- `conftest.py` parchea el engine con `NullPool` antes de importar la app para evitar errores de event loop
+- Cada test recibe una DB limpia (TRUNCATE de todas las tablas de negocio antes de cada test)
+- Las tablas se crean con `Base.metadata.create_all` al inicio de la sesión
+- Los tokens de prueba (`admin_token`, `manager_token`, `employee_token`) son fixtures reutilizables
+
+### Notas importantes
+- Los modelos `Mapped[datetime]` generan columnas `TIMESTAMP` (sin timezone) en la DB de tests
+- Pasar `datetime` timezone-aware a estas columnas causa `DataError` en asyncpg — usar `func.now()` en UPDATEs o `.replace(tzinfo=None)` para asignaciones ORM
+- Bulk UPDATEs con `synchronize_session=False` no actualizan el identity map — usar asignación directa de atributos ORM en `set_inventory`
+
 - Cobertura mínima objetivo: **70%** en backend
-- Tests de integración para los 2 endpoints de reportes
 
 ---
 
@@ -564,7 +541,6 @@ docker-compose up --build
 cd backend
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-alembic upgrade head
 uvicorn app.main:app --reload
 
 # Sin Docker — Frontend
@@ -588,4 +564,4 @@ npm run dev
 
 ---
 
-*Última actualización: Marzo 2026*
+*Última actualización: Abril 2026*

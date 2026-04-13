@@ -231,10 +231,11 @@ async def test_product_with_inventory(admin_token, client, test_category, test_s
     )
     product = resp.json()
 
-    # No POST /inventory endpoint exists — seed the record directly
+    # Product creation auto-creates an inventory record (quantity=0).
+    # Use set_inventory to update it to the desired quantity.
     from app.repositories import inventory_repo
 
     async with _test_sf() as session:
-        await inventory_repo.create_inventory(session, product["id"], quantity=100)
+        await inventory_repo.set_inventory(session, product["id"], quantity=100)
 
     return product

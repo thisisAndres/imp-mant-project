@@ -1,6 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.inventory import Inventory
 from app.models.product import Product
 
 
@@ -53,6 +54,8 @@ async def create(
         unit=unit,
     )
     db.add(product)
+    await db.flush()
+    db.add(Inventory(product_id=product.id))
     await db.commit()
     await db.refresh(product)
     return product
